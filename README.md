@@ -1,4 +1,4 @@
-# [Gnome Custom Key Bindings 0.0.1](https://github.com/chrisdenman/gckb)
+# [Gnome Custom Key Bindings 0.0.2](https://github.com/chrisdenman/gckb)
 
 A native utility for managing Gnome Control Center custom-keyboard-bindings.
 
