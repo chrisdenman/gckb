@@ -1,4 +1,4 @@
-# [Gnome Custom Key Bindings 0.0.2]()
+# [Gnome Custom Key Bindings 0.0.3]()
 
 A utility to manage Gnome Control Center custom-keyboard-bindings.
 
