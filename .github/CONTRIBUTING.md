@@ -6,16 +6,20 @@ All contributions, big or small are welcomed and positively encouraged.
 
 ## Questions and Discussions
 
-- Have a look at the [discussion](/discussions) page to
+
+
+
+
+- Have a look at the [discussions](https://github.com/chrisdenman/gckb/discussions) page to
   see if the matter has already been discussed or, the question asked. If it hasn't,
-  please [start](discussions/new/choose) an appropriately
+  please [start](https://github.com/chrisdenman/gckb/discussions/new/choose) an appropriately
   categorized discussion.
 
 ## Issues
 
-- If there's an existing [issue](/issues), please request
+- If there's an existing [issue](https://github.com/chrisdenman/gckb/issues), please request
   for it to be assigned to yourself otherwise,
-- Please create a new [issue](/issues/new/choose) using
+- Please create a new [issue](https://github.com/chrisdenman/gckb/issues/new/choose) using
   the appropriate category: bug, documentation, feature request, enhancement...
 
 ## Development
