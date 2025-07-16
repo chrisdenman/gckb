@@ -56,7 +56,7 @@ Although it is unlikely, given the nature of this project, however **if you do d
 sensitive issue that could be utilized by a malicious actor**, please contact the owner by email at
 this [address](email://chrisdenman@ceilingcat.co.uk). In particular, please don't expose the issue publicly.
 
-Otherwise, please create an [issue](/issues/new/choose).
+Otherwise, please create an [issue](https://github.com/chrisdenman/gckb/issues/new/choose).
 
 ## Pull Requests
 
