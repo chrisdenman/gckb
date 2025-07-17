@@ -1,4 +1,3 @@
-#include <gckb.h>
 #include <gio/gio.h>
 #include <glib.h>
 #include <regex.h>
