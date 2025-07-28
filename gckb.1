@@ -1,0 +1,86 @@
+." gckb man page
+.TH GCKB 1 20250525 0.0.6
+.SH NAME
+GCKB - A utility to manage Gnome Control Center custom keyboard bindings.
+.SH SYNOPSIS
+.SY gckb
+\fBadd\fP \fIname\fP \fIcommand\fP \fIbinding\fP
+.SY gckb
+\fBdelete\fP \fI[index]\fP
+.SY gckb
+\fBlist\fP
+.YS
+.SH DESCRIPTION
+\fBgckb\fP is a native utility for managing Gnome Control Center custom keyboard bindings.
+Use \fBgckb\fP to add, delete or list bindings.
+.SH EXAMPLES
+.EX
+\fBgckb\fP \fIadd\fP \fI'Launch Terminator'\fP \fIterminator\fP \fI'<Shift><Ctrl><Alt>F12'\fP
+.EE
+.RS 4
+Adds a binding named 'Launch Terminator', which will execute the command 'terminator', when: Shift, Ctrl, Alt and
+F12 are pressed simultaneously.
+.P
+To determine acceptable \fIbinding\fP values, it is recommended to add them using Gnome Control Center initially.
+The bindings then can be inspected and stripped of their interstitial '+' characters.
+.RE
+.P
+.EX
+\fBgckb\fP \fIdelete\fP
+.EE
+.RS 4
+Delete all bindings.
+.RE
+.P
+.EX
+\fBgckb\fP \fIdelete\fP \fI1\fP
+.EE
+.RS 4
+Delete the binding at index 1.
+.RE
+.P
+.EX
+\fBgckb\fP \fIlist\fP
+.EE
+.RS 4
+List all bindings.
+.P
+All custom keyboard binding are detailed, one per line of standard output.
+
+The fields shown are tab separated in this order: index, name, command & binding.
+.RE
+.P
+.SH BUGS
+Please visit
+.UR https://github.com/chrisdenman/gckb/issues
+<https://github.com/chrisdenman/gckb/issues>
+.UE .
+.SH UNLICENSE
+.P
+This is free and unencumbered software released into the public domain.
+.P
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+.P
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+.P
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+.P
+For more information, please refer to
+.UR https://unlicense.org
+<https://unlicense.org>
+.UE

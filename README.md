@@ -1,4 +1,4 @@
-# [Gnome Custom Key Bindings 0.0.5]()
+# [Gnome Custom Key Bindings 0.0.6]()
 
 A utility to manage Gnome Control Center custom-keyboard-bindings.
 
@@ -27,6 +27,11 @@ Please read the [guide](.github/CONTRIBUTING.md) to get involved.
 ## Code of Conduct
 
 Please read our [code of conduct](.github/CODE_OF_CONDUCT.md)
+
+## Links
+
+- [CMake : cmake.org](https://cmake.org/)
+- [The Ninja build system : ninja-build.org](https://ninja-build.org/manual.html)
 
 ***
 
