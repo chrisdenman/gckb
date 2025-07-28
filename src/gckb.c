@@ -64,7 +64,7 @@ typedef struct {
 /**
  * Ann array of valid keyboard modifier keys as interpreted by GSettings.
  */
-static const char *validKeyboardModifierRepresentations[] = {
+static const char *validKeyboardModifierStrings[] = {
     MODIFIER__CTRL, MODIFIER__ALT, MODIFIER__SHIFT, MODIFIER__SUPER, MODIFIER__PRIMARY, NULL
 };
 
@@ -95,7 +95,7 @@ static CustomKeyBinding *loadCustomKeyBinding(const gchar *path) {
  *
  * @param customKeyBinding the binding to free
  */
-static void freeBinding(CustomKeyBinding *customKeyBinding) {
+static void freeMemory(CustomKeyBinding *customKeyBinding) {
     g_free(customKeyBinding->path);
     g_free(customKeyBinding->name);
     g_free(customKeyBinding->command);
@@ -118,14 +118,14 @@ gboolean str_equal(const char *str1, const char *str2) {
     return g_strcmp0(str1, str2) == 0;
 }
 
-static gchar **getDefinedBindingPaths(GSettings *settings) {
+static gchar **getCustomKeyBindingPaths(GSettings *settings) {
     return g_settings_get_strv(settings, KEY__CUSTOM_KEYBINDINGS);
 }
 
 static gboolean isValidModifier(const gchar *modifier) {
     gboolean isValid = FALSE;
-    for (int i = 0; !isValid && validKeyboardModifierRepresentations[i]; ++i) {
-        isValid |= str_equal(modifier, validKeyboardModifierRepresentations[i]);
+    for (int i = 0; !isValid && validKeyboardModifierStrings[i]; ++i) {
+        isValid |= str_equal(modifier, validKeyboardModifierStrings[i]);
     }
 
     return isValid;
@@ -134,7 +134,7 @@ static gboolean isValidModifier(const gchar *modifier) {
 static gboolean isValidBinding(const gchar *binding) {
     if (!binding || *binding == '\0') return FALSE;
 
-    GHashTable *seen_mods = g_hash_table_new(g_str_hash, g_str_equal);
+    GHashTable *modifiersSeen = g_hash_table_new(g_str_hash, g_str_equal);
     const gchar *p = binding;
     gboolean found_modifier = FALSE;
 
@@ -144,11 +144,11 @@ static gboolean isValidBinding(const gchar *binding) {
             if (!end) goto fail;
 
             gchar *mod = g_strndup(p + 1, end - p - 1);
-            if (!isValidModifier(mod) || g_hash_table_contains(seen_mods, mod)) {
+            if (!isValidModifier(mod) || g_hash_table_contains(modifiersSeen, mod)) {
                 g_free(mod);
                 goto fail;
             }
-            g_hash_table_add(seen_mods, mod);
+            g_hash_table_add(modifiersSeen, mod);
             found_modifier = TRUE;
             p = end + 1;
         } else {
@@ -156,21 +156,22 @@ static gboolean isValidBinding(const gchar *binding) {
         }
     }
 
-    g_hash_table_destroy(seen_mods);
+    g_hash_table_destroy(modifiersSeen);
     return found_modifier && *p != '\0';
 
 fail:
-    g_hash_table_destroy(seen_mods);
+    g_hash_table_destroy(modifiersSeen);
     return FALSE;
 }
 
 static void resetBinding(const gchar *path) {
-    GSettings *s = g_settings_new_with_path(SCHEMA_ID__MEDIA_KEYS__CUSTOM_KEYBINDING, path);
-    g_settings_reset(s, KEY__NAME);
-    g_settings_reset(s, KEY__COMMAND);
-    g_settings_reset(s, KEY__BINDING);
+    GSettings *customKeyBindingSchemaSettings =
+            g_settings_new_with_path(SCHEMA_ID__MEDIA_KEYS__CUSTOM_KEYBINDING, path);
+    g_settings_reset(customKeyBindingSchemaSettings, KEY__NAME);
+    g_settings_reset(customKeyBindingSchemaSettings, KEY__COMMAND);
+    g_settings_reset(customKeyBindingSchemaSettings, KEY__BINDING);
     g_settings_sync();
-    g_object_unref(s);
+    g_object_unref(customKeyBindingSchemaSettings);
 }
 
 static int add(
@@ -182,12 +183,12 @@ static int add(
 
     if (isValidBinding(binding)) {
         GSettings *mediaKeysSettings = g_settings_new(SCHEMA_ID__MEDIA_KEYS);
+        gchar **customKeyBindingPaths = getCustomKeyBindingPaths(mediaKeysSettings);
 
-        gchar **paths = getDefinedBindingPaths(mediaKeysSettings);
-
+        // Look for existing entries with the same name or binding
         gboolean errorFound = FALSE;
-        for (gsize bindingPathIndex = 0; !errorFound && paths[bindingPathIndex]; ++bindingPathIndex) {
-            CustomKeyBinding *customKeyBinding = loadCustomKeyBinding(paths[bindingPathIndex]);
+        for (gsize bindingPathIndex = 0; !errorFound && customKeyBindingPaths[bindingPathIndex]; ++bindingPathIndex) {
+            CustomKeyBinding *customKeyBinding = loadCustomKeyBinding(customKeyBindingPaths[bindingPathIndex]);
 
             if (str_equal(customKeyBinding->name, name)) {
                 g_printerr(FS__ERROR__ADD__DUPLICATE_NAME);
@@ -199,45 +200,46 @@ static int add(
                 errorFound = TRUE;
             }
 
-            freeBinding(customKeyBinding);
+            freeMemory(customKeyBinding);
         }
 
-        if (errorFound) {
-            g_strfreev(paths);
-        } else {
+        if (!errorFound) {
+            // Determine the next custom key binding schema path, ascending from 0
             int index = 0;
-            gchar *new_path = NULL;
+            gchar *newCustomKeyBindingPath = NULL;
             do {
-                g_free(new_path);
-                new_path = g_strdup_printf(PATH_PREFIX "custom%d/", index++);
+                g_free(newCustomKeyBindingPath);
+                newCustomKeyBindingPath = g_strdup_printf(PATH_PREFIX "custom%d/", index++);
                 // ReSharper disable once CppRedundantCastExpression
-            } while (g_strv_contains((const gchar * const*) paths, new_path));
+            } while (g_strv_contains((const gchar * const*) customKeyBindingPaths, newCustomKeyBindingPath));
 
-            const gsize len = g_strv_length(paths);
-            gchar **updated = g_malloc0(sizeof(gchar *) * (len + 2));
+            // Add our new path to the end of the list of paths
+            const gsize len = g_strv_length(customKeyBindingPaths);
+            gchar **updatedPathsList = g_malloc0(sizeof(gchar *) * (len + 2));
             for (gsize i = 0; i < len; i++) {
-                updated[i] = g_strdup(paths[i]);
+                updatedPathsList[i] = g_strdup(customKeyBindingPaths[i]);
             }
-            updated[len] = g_strdup(new_path);
-            updated[len + 1] = NULL;
+            updatedPathsList[len] = g_strdup(newCustomKeyBindingPath);
+            updatedPathsList[len + 1] = NULL;
             // ReSharper disable once CppRedundantCastExpression
-            g_settings_set_strv(mediaKeysSettings, KEY__CUSTOM_KEYBINDINGS, (const gchar * const*) updated);
+            g_settings_set_strv(mediaKeysSettings, KEY__CUSTOM_KEYBINDINGS, (const gchar * const*) updatedPathsList);
 
+            // Create a new custom key binding schema for our new entry
             GSettings *newBindingSettings =
-                    g_settings_new_with_path(SCHEMA_ID__MEDIA_KEYS__CUSTOM_KEYBINDING, new_path);
+                    g_settings_new_with_path(SCHEMA_ID__MEDIA_KEYS__CUSTOM_KEYBINDING, newCustomKeyBindingPath);
             g_settings_set_string(newBindingSettings, KEY__NAME, name);
             g_settings_set_string(newBindingSettings, KEY__COMMAND, command);
             g_settings_set_string(newBindingSettings, KEY__BINDING, binding);
             g_settings_sync();
             g_object_unref(newBindingSettings);
 
-            g_free(new_path);
-            g_strfreev(paths);
-            g_strfreev(updated);
+            g_free(newCustomKeyBindingPath);
+            g_strfreev(updatedPathsList);
 
             g_object_unref(mediaKeysSettings);
             result = EXIT_SUCCESS;
         }
+        g_strfreev(customKeyBindingPaths);
     } else {
         g_printerr(FS__ERROR__ADD__INVALID_KEYBOARD_BINDING, binding);
     }
@@ -253,14 +255,14 @@ static int add(
 static int deleteAll() {
     GSettings *mediaKeysSettings = g_settings_new(SCHEMA_ID__MEDIA_KEYS);
 
-    gchar **paths = getDefinedBindingPaths(mediaKeysSettings);
-    const gsize total = g_strv_length(paths);
+    gchar **customKeyBindingPaths = getCustomKeyBindingPaths(mediaKeysSettings);
+    const gsize total = g_strv_length(customKeyBindingPaths);
     for (gsize index = 0; index < total; ++index) {
-        resetBinding(paths[index]);
+        resetBinding(customKeyBindingPaths[index]);
     }
     g_settings_set_strv(mediaKeysSettings, KEY__CUSTOM_KEYBINDINGS, (const gchar * const[]){NULL});
     g_settings_sync();
-    g_strfreev(paths);
+    g_strfreev(customKeyBindingPaths);
 
     g_object_unref(mediaKeysSettings);
 
@@ -281,26 +283,26 @@ static int deleteByIndex(const long int bindingIndex) {
     int result = EXIT_FAILURE;
 
     GSettings *mediaKeysSettings = g_settings_new(SCHEMA_ID__MEDIA_KEYS);
-    gchar **customKeyBindingSchemaPaths = getDefinedBindingPaths(mediaKeysSettings);
+    gchar **customKeyBindingSchemaPaths = getCustomKeyBindingPaths(mediaKeysSettings);
     const gsize numberOfCustomKeybindings = g_strv_length(customKeyBindingSchemaPaths);
 
     if ((gsize) bindingIndex >= numberOfCustomKeybindings) {
         g_printerr(FS__ERROR__DELETE__INVALID_INDEX_OUT_OF_BOUNDS, bindingIndex);
         g_strfreev(customKeyBindingSchemaPaths);
     } else {
-        GPtrArray *new_paths = g_ptr_array_new_with_free_func(g_free);
+        GPtrArray *newPaths = g_ptr_array_new_with_free_func(g_free);
         for (gsize i = 0; i < numberOfCustomKeybindings; ++i) {
             if (i == bindingIndex) {
                 resetBinding(customKeyBindingSchemaPaths[i]);
             } else {
-                g_ptr_array_add(new_paths, g_strdup(customKeyBindingSchemaPaths[i]));
+                g_ptr_array_add(newPaths, g_strdup(customKeyBindingSchemaPaths[i]));
             }
         }
 
-        g_ptr_array_add(new_paths, NULL);
-        g_settings_set_strv(mediaKeysSettings, KEY__CUSTOM_KEYBINDINGS, (const gchar * const *) new_paths->pdata);
+        g_ptr_array_add(newPaths, NULL);
+        g_settings_set_strv(mediaKeysSettings, KEY__CUSTOM_KEYBINDINGS, (const gchar * const *) newPaths->pdata);
         g_settings_sync();
-        g_ptr_array_free(new_paths, TRUE);
+        g_ptr_array_free(newPaths, TRUE);
         g_strfreev(customKeyBindingSchemaPaths);
 
         result = EXIT_SUCCESS;
@@ -320,13 +322,13 @@ static int deleteByIndex(const long int bindingIndex) {
 static int list() {
     GSettings *mediaKeysSettings = g_settings_new(SCHEMA_ID__MEDIA_KEYS);
 
-    gchar **paths = getDefinedBindingPaths(mediaKeysSettings);
-    for (gsize index = 0; paths[index]; ++index) {
-        CustomKeyBinding *b = loadCustomKeyBinding(paths[index]);
+    gchar **customKeyBindingPaths = getCustomKeyBindingPaths(mediaKeysSettings);
+    for (gsize index = 0; customKeyBindingPaths[index]; ++index) {
+        CustomKeyBinding *b = loadCustomKeyBinding(customKeyBindingPaths[index]);
         g_print(FS__LIST__BINDING_LINE, index, b->name, b->command, b->binding);
-        freeBinding(b);
+        freeMemory(b);
     }
-    g_strfreev(paths);
+    g_strfreev(customKeyBindingPaths);
 
     g_object_unref(mediaKeysSettings);
 
