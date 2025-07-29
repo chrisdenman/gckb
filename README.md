@@ -1,6 +1,8 @@
 # [Gnome Custom Key Bindings]()
 
 ![](.github/social_preview/small.png)
+![](https://img.shields.io/badge/gckb-1.0.2-76B900?logoColor=white)
+
 
 A utility to manage Gnome Control Center custom-keyboard-bindings.
 
