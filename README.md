@@ -1,4 +1,6 @@
-# [Gnome Custom Key Bindings 1.0.0]()
+# [Gnome Custom Key Bindings]()
+
+![](.github/social_preview/small.png)
 
 A utility to manage Gnome Control Center custom-keyboard-bindings.
 
