@@ -1,10 +1,14 @@
 # [Gnome Custom Key Bindings]()
 
 ![](.github/social_preview/small.png)
-![](https://img.shields.io/badge/gckb-1.0.2-76B900?logoColor=white)
 
+![](https://img.shields.io/badge/gckb-1.0.0-76B900?logoColor=white)
+![](https://img.shields.io/badge/released-20250729-76B900?logoColor=white)
 
-A utility to manage Gnome Control Center custom-keyboard-bindings.
+![](https://img.shields.io/badge/main-1.0.3-76B900?logoColor=white)
+![](https://img.shields.io/badge/updated-20250730-76B900?logoColor=white)
+
+A native utility to manage Gnome Control Center custom-keyboard-bindings.
 
 ***
 
@@ -15,7 +19,7 @@ Bash.
 
 It has sprung into life to:
 
-- Evaluate ChatGPT-4o
+- Evaluate ChatGPT-4o.
 - Learn some 'state of the art' C tooling.
 - Fill in some gaps in my knowledge with respect to: building, testing, packaging and distributing native applications
   on Ubuntu.
@@ -63,7 +67,9 @@ Please read the [guide](.github/CONTRIBUTING.md) to get involved.
 
 ## Code of Conduct
 
-Please read our [code of conduct](.github/CODE_OF_CONDUCT.md)
+Please read our [code of conduct](.github/CODE_OF_CONDUCT.md).
+
+***
 
 ## Links
 
